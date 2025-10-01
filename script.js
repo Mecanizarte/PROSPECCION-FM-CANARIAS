@@ -1,137 +1,224 @@
-let map;
-let newMarker;
-const companies = []; // Usaremos un array para simular la base de datos
-
-// URLs para los iconos de colores de Google Maps
-const icons = {
-    green: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-    blue: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-    yellow: 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
-    red: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
+// --- CONFIGURACIÓN DE FIREBASE ---
+const firebaseConfig = {
+  apiKey: "AIzaSyDs1JwzkJTkom0so8He085xLHjyaApKcKw",
+  authDomain: "prospeccion-fm-canarias.firebaseapp.com",
+  projectId: "prospeccion-fm-canarias",
+  storageBucket: "prospeccion-fm-canarias.firebasestorage.app",
+  messagingSenderId: "263977150427",
+  appId: "1:263977150427:web:a0c0567a8a35c808f9e9fe",
+  measurementId: "G-XZ4XVTQ2Q7"
 };
 
-// Función principal que inicializa el mapa
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// --- VARIABLES GLOBALES ---
+let map;
+let activeMarker;
+let markers = {}; // Objeto para guardar las referencias a los marcadores del mapa.
+
+// --- ELEMENTOS DEL DOM ---
+const modal = document.getElementById('company-modal');
+const closeModalBtn = document.querySelector('.close-btn');
+const companyForm = document.getElementById('company-form');
+const deleteBtn = document.getElementById('delete-btn');
+
+
+// --- LÓGICA DEL MAPA ---
+
 function initMap() {
     const canaryIslands = { lat: 28.291565, lng: -16.629130 };
-    
-    map = new google.maps.Map(document.getElementById('map'), {
+    map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 7,
         center: canaryIslands,
-        zoom: 8,
     });
 
-    // Añadir un listener para cuando el usuario haga clic en el mapa
+    // Cargar las empresas desde la base de datos al iniciar el mapa
+    loadCompanies();
+
+    // Evento para añadir nuevas empresas
     map.addListener('click', (e) => {
-        showForm(e.latLng);
+        openCompanyModal(null, e.latLng);
     });
-
-    // En una aplicación real, aquí cargaríamos los datos de una base de datos.
-    // loadCompaniesFromDatabase();
 }
 
-// Muestra el formulario para añadir una empresa
-function showForm(position) {
-    // Si ya hay un marcador temporal, lo eliminamos
-    if (newMarker) {
-        newMarker.setMap(null);
+// --- LÓGICA DE LA FICHA DE EMPRESA (MODAL) ---
+
+function openCompanyModal(companyData = null, position = null) {
+    companyForm.reset();
+    
+    // Si es una empresa existente (editando)
+    if (companyData) {
+        document.getElementById('company-id').value = companyData.id;
+        document.getElementById('prospector').value = companyData.prospector || '';
+        document.getElementById('centro-educativo').value = companyData.centroEducativo || '';
+        document.getElementById('fecha-prospeccion').value = companyData.fechaProspeccion || '';
+        document.getElementById('nombre-empresa').value = companyData.nombreEmpresa || '';
+        document.getElementById('actividad-empresa').value = companyData.actividad || '';
+        document.getElementById('actividades-formativas').value = companyData.actividadesFormativas || '';
+        document.getElementById('maquinaria').value = companyData.maquinaria || '';
+        document.getElementById('vacantes').value = companyData.vacantes || 0;
+        document.getElementById('historial').value = companyData.historial || '';
+        document.getElementById('color-status').value = companyData.color || 'rojo';
+
+        // Checkboxes
+        document.getElementById('acepta-practicas').checked = companyData.aceptaPracticas || false;
+        document.getElementById('tiene-empleo').checked = companyData.tieneEmpleo || false;
+        document.getElementById('convenio-firmado').checked = companyData.convenioFirmado || false;
+        document.getElementById('solicita-retribucion-consejeria').checked = companyData.solicitaRetribucion || false;
+        document.getElementById('da-retribucion-practicas').checked = companyData.daRetribucion || false;
+        document.getElementById('entrega-epis').checked = companyData.entregaEpis || false;
+
+        // El botón de eliminar siempre es visible al editar
+        deleteBtn.style.display = 'block';
+
+    } else { // Si es una nueva empresa
+        document.getElementById('company-id').value = ''; 
+        activeMarker = new google.maps.Marker({
+            position: position,
+            map: map
+        });
+        // Ocultar el botón de eliminar para empresas nuevas
+        deleteBtn.style.display = 'none'; 
     }
     
-    // Creamos un marcador temporal para que el usuario vea dónde está añadiendo la empresa
-    newMarker = new google.maps.Marker({
-        position: position,
-        map: map,
-    });
-
-    const modal = document.getElementById('info-form');
-    modal.classList.remove('modal-hidden');
-    
-    // Rellenamos las coordenadas en el formulario
-    document.getElementById('lat').value = position.lat();
-    document.getElementById('lng').value = position.lng();
+    modal.style.display = 'block';
 }
 
-// Oculta el formulario y limpia los campos
-function hideForm() {
-    const modal = document.getElementById('info-form');
-    modal.classList.add('modal-hidden');
-    document.getElementById('company-form').reset();
-    
-    // Si el usuario cancela, eliminamos el marcador temporal
-    if (newMarker) {
-        newMarker.setMap(null);
+// Cerrar el modal
+closeModalBtn.onclick = function() {
+    modal.style.display = "none";
+    if (activeMarker && !document.getElementById('company-id').value) {
+        activeMarker.setMap(null); // Elimina el marcador temporal si se cierra sin guardar
+    }
+    activeMarker = null;
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        closeModalBtn.onclick();
     }
 }
 
-// Event listener para el botón de cancelar
-document.getElementById('cancel-button').addEventListener('click', hideForm);
+// --- GUARDAR Y ACTUALIZAR DATOS EN FIRESTORE ---
 
-// Event listener para el envío del formulario
-document.getElementById('company-form').addEventListener('submit', function(e) {
-    e.preventDefault(); // Evita que la página se recargue
-
-    const name = document.getElementById('name').value;
-    const activity = document.getElementById('activity').value;
-    const hasPractices = document.getElementById('has-practices').checked;
-    const hasJob = document.getElementById('has-job').checked;
-    const lat = parseFloat(document.getElementById('lat').value);
-    const lng = parseFloat(document.getElementById('lng').value);
-
+companyForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = document.getElementById('company-id').value;
+    
     const companyData = {
-        name,
-        activity,
-        hasPractices,
-        hasJob,
-        position: { lat, lng }
+        prospector: document.getElementById('prospector').value,
+        centroEducativo: document.getElementById('centro-educativo').value,
+        fechaProspeccion: document.getElementById('fecha-prospeccion').value,
+        nombreEmpresa: document.getElementById('nombre-empresa').value,
+        actividad: document.getElementById('actividad-empresa').value,
+        actividadesFormativas: document.getElementById('actividades-formativas').value,
+        maquinaria: document.getElementById('maquinaria').value,
+        vacantes: parseInt(document.getElementById('vacantes').value),
+        historial: document.getElementById('historial').value,
+        color: document.getElementById('color-status').value,
+        aceptaPracticas: document.getElementById('acepta-practicas').checked,
+        tieneEmpleo: document.getElementById('tiene-empleo').checked,
+        convenioFirmado: document.getElementById('convenio-firmado').checked,
+        solicitaRetribucion: document.getElementById('solicita-retribucion-consejeria').checked,
+        daRetribucion: document.getElementById('da-retribucion-practicas').checked,
+        entregaEpis: document.getElementById('entrega-epis').checked,
     };
-    
-    // En una aplicación real, aquí guardaríamos en la base de datos
-    // saveCompanyToDatabase(companyData);
-    
-    // Simulamos el guardado añadiéndolo al mapa
-    addCompanyMarker(companyData);
-    
-    // Eliminamos el marcador temporal una vez guardado el definitivo
-    if (newMarker) {
-        newMarker.setMap(null);
+
+    if (id) {
+        // Actualizar empresa existente
+        db.collection('empresas').doc(id).update(companyData)
+            .then(() => {
+                console.log("Empresa actualizada");
+                modal.style.display = "none";
+                loadCompanies(); 
+            })
+            .catch(error => console.error("Error al actualizar: ", error));
+    } else {
+        // Guardar nueva empresa
+        companyData.lat = activeMarker.getPosition().lat();
+        companyData.lng = activeMarker.getPosition().lng();
+        
+        db.collection('empresas').add(companyData)
+            .then(() => {
+                console.log("Empresa guardada");
+                modal.style.display = "none";
+                activeMarker.setMap(null); 
+                activeMarker = null;
+                loadCompanies();
+            })
+            .catch(error => console.error("Error al guardar: ", error));
     }
-    
-    hideForm();
 });
 
+// --- CARGAR Y PINTAR EMPRESAS DESDE FIRESTORE ---
 
-// Función para añadir un marcador de empresa al mapa
-function addCompanyMarker(company) {
-    let color;
-    if (company.hasPractices && company.hasJob) {
-        color = 'green';
-    } else if (company.hasPractices) {
-        color = 'blue';
-    } else if (company.hasJob) {
-        color = 'yellow';
-    } else {
-        color = 'red';
+function loadCompanies() {
+    // Limpiar marcadores existentes
+    for (let markerId in markers) {
+        markers[markerId].setMap(null);
     }
+    markers = {};
 
-    const marker = new google.maps.Marker({
-        position: company.position,
-        map: map,
-        icon: icons[color],
-        title: company.name
+    db.collection('empresas').onSnapshot((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            const company = { id: doc.id, ...doc.data() };
+            // Si ya existe un marcador para esta empresa, lo borramos antes de pintar el nuevo
+            if (markers[company.id]) {
+                markers[company.id].setMap(null);
+            }
+            addMarkerToMap(company);
+        });
     });
+}
 
-    // Creamos la ventana de información que aparece al hacer clic
-    const infoWindowContent = `
-        <div>
-            <h4>${company.name}</h4>
-            <p><strong>Actividad:</strong> ${company.activity}</p>
-            <p><strong>Prácticas:</strong> ${company.hasPractices ? 'Sí' : 'No'}</p>
-            <p><strong>Empleo:</strong> ${company.hasJob ? 'Sí' : 'No'}</p>
-        </div>
-    `;
-    const infoWindow = new google.maps.InfoWindow({
-        content: infoWindowContent
+
+function addMarkerToMap(company) {
+    const colors = {
+        rojo: 'red',
+        amarillo: 'yellow',
+        azul: 'blue',
+        verde: 'green'
+    };
+    
+    const marker = new google.maps.Marker({
+        position: { lat: company.lat, lng: company.lng },
+        map: map,
+        title: company.nombreEmpresa,
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: colors[company.color] || 'grey',
+            fillOpacity: 1,
+            strokeWeight: 1,
+        }
     });
 
     marker.addListener('click', () => {
-        infoWindow.open(map, marker);
+        openCompanyModal(company);
     });
+    
+    markers[company.id] = marker;
 }
+
+// --- ELIMINAR EMPRESA ---
+
+deleteBtn.addEventListener('click', () => {
+    const id = document.getElementById('company-id').value;
+    if (id && confirm("¿Estás seguro de que quieres eliminar esta empresa? Esta acción es irreversible.")) {
+        
+        // Borramos el marcador del mapa al instante
+        if (markers[id]) {
+            markers[id].setMap(null);
+            delete markers[id];
+        }
+
+        db.collection('empresas').doc(id).delete()
+            .then(() => {
+                console.log("Empresa eliminada de la base de datos");
+                modal.style.display = 'none';
+            })
+            .catch(error => console.error("Error al eliminar: ", error));
+    }
+});
