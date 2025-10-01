@@ -1,119 +1,200 @@
-/* Estilos generales */
 body, html {
     height: 100%;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f4f4f4;
 }
 
-/* Contenedor del mapa */
 #map {
-    height: 100%;
+    height: calc(100% - 60px); /* Altura total menos el header */
     width: 100%;
 }
 
-/* Estilo del formulario modal */
-#info-form {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    z-index: 1000;
-    width: 90%;
-    max-width: 400px;
+#app-container {
+    height: 100vh;
+    width: 100vw;
 }
 
-.modal-hidden {
-    display: none;
-}
-
-#company-form h3 {
-    margin-top: 0;
-}
-
-#company-form label {
-    display: block;
-    margin-top: 10px;
-    margin-bottom: 5px;
-}
-
-#company-form input[type="text"],
-#company-form textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
-}
-
-.checkbox-container {
-    display: flex;
-    align-items: center;
-    margin-top: 15px;
-}
-
-.checkbox-container input {
-    margin-right: 10px;
-}
-
-.button-container {
-    margin-top: 20px;
+#header {
+    height: 60px;
+    background-color: #333;
+    color: white;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
-button {
-    padding: 10px 15px;
+#header h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+#user-info {
+    display: flex;
+    align-items: center;
+}
+
+#user-email {
+    margin-right: 15px;
+}
+
+#logout-btn {
+    padding: 8px 12px;
+    background-color: #d9534f;
+    color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
 }
 
-button[type="submit"] {
-    background-color: #4CAF50; /* Verde */
-    color: white;
+/* --- Estilos del Login --- */
+#login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #333;
 }
 
-#cancel-button {
-    background-color: #f44336; /* Rojo */
-    color: white;
+.login-box {
+    padding: 40px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+    width: 300px;
 }
 
-/* Leyenda del mapa */
-#legend {
-    position: fixed;
-    bottom: 20px;
-    left: 10px;
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 10px 15px;
+.login-box h2 {
+    margin-bottom: 20px;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
     border-radius: 5px;
-    z-index: 999;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-sizing: border-box;
 }
 
-#legend h4 {
-    margin: 0 0 10px 0;
+.login-box button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-#legend p {
-    margin: 5px 0;
+.error-message {
+    color: red;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+
+/* --- Estilos del Modal --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    padding-top: 20px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    position: relative;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 25px;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#company-form label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+#company-form input[type="text"],
+#company-form input[type="date"],
+#company-form input[type="number"],
+#company-form textarea,
+#company-form select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.checkbox-grid label {
+    font-weight: normal;
     display: flex;
     align-items: center;
 }
 
-.dot {
-    height: 12px;
-    width: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 8px;
+.checkbox-grid input {
+    margin-right: 10px;
 }
 
-.green { background-color: #28a745; }
-.blue { background-color: #007bff; }
-.yellow { background-color: #ffc107; }
-.red { background-color: #dc3545; }
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+.form-buttons button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.form-buttons button[type="submit"] {
+    background-color: #28a745;
+    color: white;
+}
+
+.delete-button {
+    background-color: #dc3545;
+    color: white;
+}

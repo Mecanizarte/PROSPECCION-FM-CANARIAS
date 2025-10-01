@@ -3,50 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de Oportunidades Canarias</title>
+    <title>Mapa de Prospección de Empresas</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="map"></div>
 
-    <div id="info-form" class="modal-hidden">
-        <form id="company-form">
-            <h3>Añadir Información de Empresa</h3>
-            <input type="hidden" id="lat" name="lat">
-            <input type="hidden" id="lng" name="lng">
-            
-            <label for="name">Nombre de la empresa:</label>
-            <input type="text" id="name" name="name" required>
-            
-            <label for="activity">Actividad principal:</label>
-            <textarea id="activity" name="activity" rows="3" required></textarea>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="has-practices" name="has-practices">
-                <label for="has-practices">Ofrece Prácticas</label>
-            </div>
-            
-            <div class="checkbox-container">
-                <input type="checkbox" id="has-job" name="has-job">
-                <label for="has-job">Tiene Empleo Vacante</label>
-            </div>
-            
-            <div class="button-container">
-                <button type="submit">Guardar</button>
-                <button type="button" id="cancel-button">Cancelar</button>
-            </div>
-        </form>
+    <div id="login-container">
+        <div class="login-box">
+            <h2>Iniciar Sesión</h2>
+            <input type="email" id="email" placeholder="Correo electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button id="login-btn">Entrar</button>
+            <p id="login-error" class="error-message"></p>
+        </div>
     </div>
 
-    <div id="legend">
-        <h4>Leyenda</h4>
-        <p><span class="dot green"></span> Ofrece Prácticas y Empleo</p>
-        <p><span class="dot blue"></span> Solo Prácticas</p>
-        <p><span class="dot yellow"></span> Solo Empleo</p>
-        <p><span class="dot red"></span> Sin Ofertas</p>
+    <div id="app-container" style="display: none;">
+        <div id="header">
+            <h1>Mapa de Prospección - Islas Canarias</h1>
+            <div id="user-info">
+                <span id="user-email"></span>
+                <button id="logout-btn">Cerrar Sesión</button>
+            </div>
+        </div>
+        <div id="map"></div>
     </div>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnnj-DKlGjIpVzj4oWipr5R_-pOse46BA&callback=initMap" async defer></script>
+    <div id="company-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <form id="company-form">
+                <input type="hidden" id="company-id">
+                <label for="prospector">Prospector:</label>
+                <input type="text" id="prospector" required>
+
+                <label for="centro-educativo">Centro Educativo:</label>
+                <input type="text" id="centro-educativo">
+
+                <label for="fecha-prospeccion">Fecha de la última prospección:</label>
+                <input type="date" id="fecha-prospeccion" required>
+
+                <label for="nombre-empresa">Nombre de la empresa:</label>
+                <input type="text" id="nombre-empresa" required>
+
+                <label for="actividad-empresa">Actividad a la que se dedica:</label>
+                <input type="text" id="actividad-empresa">
+
+                <label for="actividades-formativas">Actividades Formativas Realizables:</label>
+                <textarea id="actividades-formativas" rows="3"></textarea>
+
+                <label for="maquinaria">Maquinaria, medios y espacios:</label>
+                <textarea id="maquinaria" rows="3"></textarea>
+
+                <label for="vacantes">Número de vacantes disponibles:</label>
+                <input type="number" id="vacantes" min="0" value="0">
+
+                <label for="historial">Historial de colaboraciones:</label>
+                <textarea id="historial" rows="3"></textarea>
+                
+                <label for="color-status">Estado de la Empresa (Color en el mapa):</label>
+                <select id="color-status">
+                    <option value="rojo">🔴 No ofrece prácticas ni empleo</option>
+                    <option value="amarillo">🟡 Solo ofrece empleo</option>
+                    <option value="azul">🔵 Solo ofrece prácticas</option>
+                    <option value="verde">🟢 Ofrece prácticas y empleo</option>
+                </select>
+
+                <div class="checkbox-grid">
+                    <label><input type="checkbox" id="acepta-practicas"> Acepta prácticas</label>
+                    <label><input type="checkbox" id="tiene-empleo"> Tiene empleo vacante</label>
+                    <label><input type="checkbox" id="convenio-firmado"> Convenio firmado</label>
+                    <label><input type="checkbox" id="solicita-retribucion-consejeria"> Solicita retribución Consejería</label>
+                    <label><input type="checkbox" id="da-retribucion-practicas"> Da retribución a la persona de prácticas</label>
+                    <label><input type="checkbox" id="entrega-epis"> Entrega EPIs</label>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit">Guardar Empresa</button>
+                    <button type="button" id="delete-btn" class="delete-button" style="display: none;">Eliminar Empresa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
     <script src="script.js"></script>
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBnnj-DKlGjIpVzj4oWipr5R_-pOse46BA&callback=initMap"></script>
 </body>
 </html>
