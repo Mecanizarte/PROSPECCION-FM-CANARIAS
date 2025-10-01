@@ -1,0 +1,119 @@
+/* Estilos generales */
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Contenedor del mapa */
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+/* Estilo del formulario modal */
+#info-form {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    width: 90%;
+    max-width: 400px;
+}
+
+.modal-hidden {
+    display: none;
+}
+
+#company-form h3 {
+    margin-top: 0;
+}
+
+#company-form label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+#company-form input[type="text"],
+#company-form textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Importante para que el padding no afecte el ancho */
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.checkbox-container input {
+    margin-right: 10px;
+}
+
+.button-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button[type="submit"] {
+    background-color: #4CAF50; /* Verde */
+    color: white;
+}
+
+#cancel-button {
+    background-color: #f44336; /* Rojo */
+    color: white;
+}
+
+/* Leyenda del mapa */
+#legend {
+    position: fixed;
+    bottom: 20px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 15px;
+    border-radius: 5px;
+    z-index: 999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#legend h4 {
+    margin: 0 0 10px 0;
+}
+
+#legend p {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+}
+
+.dot {
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.green { background-color: #28a745; }
+.blue { background-color: #007bff; }
+.yellow { background-color: #ffc107; }
+.red { background-color: #dc3545; }
